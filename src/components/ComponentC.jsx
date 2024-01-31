@@ -1,40 +1,38 @@
 import { Button, TextField } from "@mui/material";
-import axios from "axios";
 import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
+import { getDataRedux, reduxHandleUpdate } from "../store/dataSlice";
 
 const ComponentC = (props) => {
-  const { data } = props;
-  const [orders, setOrders] = useState(data.orders);
+  const { data, url } = props; //1
+  const dispatch = useDispatch();
+  const [orders, setOrders] = useState(data?.orders);
 
   useEffect(() => {
-    setOrders(data.orders);
+    setOrders(data?.orders);
   }, [data]);
 
   const handleChange = (orderIndex, field) => (event) => {
-    const newOrders = [...orders];
-    newOrders[orderIndex][field] = event.target.value;
+    const newOrders = orders.map((order, index) => {
+      index === orderIndex ? { ...order, [field]: event.target.value } : order;
+    });
+
     setOrders(newOrders);
   };
 
-  const handleUpdate = async () => {
-    try {
-      const response = await axios.put(`http://localhost:3000/data`, {
-        ...data,
-        orders,
-      });
-      console.log(response.data);
-    } catch (error) {
-      console.error(error);
-    }
+  const handleUpdate = () => {
+    dispatch(reduxHandleUpdate({ ...data, orders })).then(() => {
+      dispatch(getDataRedux(url));
+    });
   };
 
   return (
     <div>
       <h1>Component C</h1>
       <div>
-        <h2>{data.name}</h2>
+        <h2>{data?.name}</h2>
         <div style={{ display: "flex", justifyContent: "space-evenly" }}>
-          {orders.map((order, orderIndex) => (
+          {orders?.map((order, orderIndex) => (
             <div
               key={orderIndex}
               style={{ display: "flex", flexDirection: "column", margin: 10 }}
